@@ -24,32 +24,9 @@ class AuthView(Resource):
         username = req_json.get("username")
         password = req_json.get("password")
 
-        # if not all(username, password):
-        #     return abort(400)
-        #
-        # user = user_service.get_one(username)
-        #
-        # if not user:
-        #     return abort(404)
-        #
-        # if user_service.get_hash(password) != user.get("password"):
-        #     return abort(400)
-        #
-        #
-        # data = {
-        #     "username": user.username,
-        #     "role": user.role
-        # }
-        #
-        # min30 = datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
-        # data["exp"] = calendar.timegm(min30.timetuple())
-        # access_token = jwt.encode(data, JWT_SECRET, algorithm=JWT_ALGO)
-        #
-        # days130 = datetime.datetime.utcnow() + datetime.timedelta(days=130)
-        # data["exp"] = calendar.timegm(days130.timetuple())
-        # refresh_token = jwt.encode(data, JWT_SECRET, algorithm=JWT_ALGO)
-        #
-        # tokens = {"access_token": access_token, "refresh_token": refresh_token}
+        if None in [username, password]:
+            abort(401)
+
         tokens = auth_service.generate_token(username, password)
 
         return tokens, 201
@@ -62,33 +39,6 @@ class AuthView(Resource):
 
         req_json = request.json
         refresh_token = req_json.get("refresh_token")
-
-        # if not refresh_token:
-        #     return abort(400)
-        #
-        # try:
-        #     data = jwt.decode(jwt=refresh_token, key=JWT_SECRET, algorithms=[JWT_ALGO])
-        # except Exception as e:
-        #     abort(400)
-        #
-        # username = data.get("username")
-        #
-        # user = user_service.get_one(username)
-        #
-        # data = {
-        #     "username": user.username,
-        #     "role": user.role
-        # }
-        #
-        # min30 = datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
-        # data["exp"] = calendar.timegm(min30.timetuple())
-        # access_token = jwt.encode(data, JWT_SECRET, algorithm=JWT_ALGO)
-        #
-        # days130 = datetime.datetime.utcnow() + datetime.timedelta(days=130)
-        # data["exp"] = calendar.timegm(days130.timetuple())
-        # refresh_token = jwt.encode(data, JWT_SECRET, algorithm=JWT_ALGO)
-        #
-        # tokens = {"access_token": access_token, "refresh_token": refresh_token}
 
         tokens = auth_service.check_token(refresh_token)
 

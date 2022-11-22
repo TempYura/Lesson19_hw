@@ -1,4 +1,4 @@
-from flask import request
+from flask import request, abort
 from flask_restx import Resource, Namespace
 from container import user_service
 
@@ -26,7 +26,28 @@ class UsersView(Resource):
         """Добавляет пользователя"""
         req_json = request.json
 
-        user = user_service.create(req_json)
+        username = req_json.get("username")
+        password = req_json.get("password")
+        role = req_json.get("role", "user")
+
+        if None in [username, password]:
+            abort(400)
+
+        user_in_db = user_service.get_by_username(username)
+
+        if user_in_db:
+            return "Пользователь с таким именем уже существует, для обновления используйте метод put", 404
+
+        password_hash = user_service.get_hash(password)
+
+        data = {
+            "username": username,
+            "password": password_hash,
+            "role": role
+        }
+
+        user = user_service.create(data)
+
 
         return user, 201,  {"location": f"/{users_ns.name}/{user['id']}"}
 
@@ -47,7 +68,22 @@ class UserView(Resource):
         req_json = request.json
         req_json["id"] = uid
 
-        user = user_service.update(req_json)
+        username = req_json.get("username")
+        password = req_json.get("password")
+        role = req_json.get("role")
+
+        if None in [username, password, role]:
+            abort(404)
+
+        password_hash = user_service.get_hash(password)
+
+        data = {
+            "username": username,
+            "password": password_hash,
+            "role": role
+        }
+
+        user = user_service.update(data)
 
         if not user:
             return "Не найдено", 404

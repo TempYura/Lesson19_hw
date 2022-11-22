@@ -97,7 +97,7 @@ class UserService:
 
     def compare_passwords(self, password_hash, request_password):
         return hmac.compare_digest(
-            base64.b16decode(password_hash),
+            base64.b64decode(password_hash),
             hashlib.pbkdf2_hmac('sha256',
                                 request_password.encode('utf-8'),  # Convert the password to bytes
                                 PWD_HASH_SALT,

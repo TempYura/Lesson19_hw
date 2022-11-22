@@ -8,25 +8,29 @@ import datetime
 import jwt
 
 from service.user import UserService
+from dao.model.user import UserSchema
 
+
+user_schema = UserSchema()
+users_schema = UserSchema(many=True)
 
 class AuthService:
     def __init__(self, user_service):
         self.user_service = user_service
 
     def generate_token(self, username, password, is_refresh=False):
-        user = self.user_service.get_by_username(username)
+        user = user_schema.dump(self.user_service.get_by_username(username))
 
         if not user:
             raise Exception()
 
         if not is_refresh:
-            if not self.user_service.compare_passwords(user.password, password):
+            if not self.user_service.compare_passwords(user.get("password"), password):
                 raise Exception()
 
         data = {
-            "username": user.username,
-            "role": user.role
+            "username": user.get("username"),
+            "role": user.get("role")
         }
 
         days130 = datetime.datetime.utcnow() + datetime.timedelta(days=130)
@@ -43,9 +47,9 @@ class AuthService:
         data = jwt.decode(refresh_token, JWT_SECRET, algorithms=[JWT_ALGO])
         username = data.get("username")
 
-        user = self.user_service.get_by_username(username)
+        user = user_schema.dump(self.user_service.get_by_username(username))
 
         if not user:
             raise Exception()
 
-        return self.generate_token(username,user.password)
+        return self.generate_token(username, user.get("password"), is_refresh=True)
